@@ -1,12 +1,18 @@
 #include"gamepage.h"
 
 
-int arr[4][4];
-int _flag[4][4];
+int** arr;
+int** _flag;
+int** temp;
 bool getkey =true;
-
+int score = 0;
 
 void initflag() {
+	_flag = new int*[4];
+	for (size_t i = 0; i < 4; i++)
+	{
+		_flag[i] = new int[4];
+	}
 	_flag[0][0] = 0;	_flag[0][1] = 0;	_flag[0][2] = 0;	_flag[0][3] = 0;
 	_flag[1][0] = 0;	_flag[1][1] = 0;	_flag[1][2] = 0;	_flag[1][3] = 0;
 	_flag[2][0] = 0;	_flag[2][1] = 0;	_flag[2][2] = 0;	_flag[2][3] = 0;
@@ -27,6 +33,11 @@ void showpage() {
 	cout << "\t" << "|" << setelement(arr[3][0]) << "|" << setelement(arr[3][1]) << "|" << setelement(arr[3][2]) << "|" << setelement(arr[3][3]) << "|" << endl;
 	cout << "\t" << "|-----|-----|-----|-----|" << endl;
 
+	showscore();
+}
+
+void showscore() {
+	cout << "当前得分：" << score << endl;
 }
 
 string setelement(int &elem) {
@@ -64,6 +75,11 @@ string setcolor(int elem) {
 
 //初始化数组
 void initdata() {
+	arr = new int* [4];
+	for (size_t i = 0; i < 4; i++)
+	{
+		arr[i] = new int[4];
+	}
 	arr[0][0] = 2;	arr[0][1] = 4;	arr[0][2] = 0;	arr[0][3] = 0;
 	arr[1][0] = 0;	arr[1][1] = 0;	arr[1][2] = 0;	arr[1][3] = 0;
 	arr[2][0] = 0;	arr[2][1] = 0;	arr[2][2] = 0;	arr[2][3] = 0;
@@ -76,7 +92,26 @@ void getkeyboard() {
 	while (getkey) {
 		if (_kbhit()) {
 			int ch = _getch();//使用_getch()函数获取按下的键值
-			keyfunc(ch);
+			if (ch == 97 || ch == 100 || ch == 115 || ch == 119) {
+				keyfunc(ch,arr);
+				showpage();
+				insertdata();
+				if (isdie()) {
+					//游戏结束
+					getkey = false;
+					cout << "游戏失败" << endl;
+					return;
+				}
+			}
+			if (ch == 101) {
+				int data = pc_play();
+				if (data == -1) {
+					//游戏结束
+					getkey = false;
+					cout << "游戏失败" << endl;
+					return;
+				}
+			}
 		}
 	}
 }
@@ -84,40 +119,34 @@ void getkeyboard() {
 
 
 
-void keyfunc(int& inbtn) {
+void keyfunc(int& inbtn, int** myarr) {
 	for (int i = 0; i < 3; i++) {
 		for (int indexY = 0;indexY < 4;indexY++) {
 			for (int indexX = 0;indexX < 4;indexX++) {
 				pair<int, int> p = getlastIndex(indexX, indexY, inbtn);
-				if (arr[p.first][p.second] == arr[indexY][indexX] && arr[indexY][indexX] != 0) {
+				if (myarr[p.first][p.second] == myarr[indexY][indexX] && myarr[indexY][indexX] != 0) {
 					if (p.first != indexY || p.second != indexX) {
 						if (_flag[p.first][p.second] == 0 && _flag[indexY][indexX] == 0) {
-
-							arr[p.first][p.second] = (arr[indexY][indexX]) * 2;
-							arr[indexY][indexX] = 0;
+							int end = (myarr[indexY][indexX]) * 2;
+							myarr[p.first][p.second] = end;
+							myarr[indexY][indexX] = 0;
 
 							_flag[p.first][p.second] = 1;
 							_flag[indexY][indexX] = 1;
+
+							score = score + end;
 						}
 						
 					}
 				}
-				else if (arr[p.first][p.second] == 0) {
-					arr[p.first][p.second] = arr[indexY][indexX];
-					arr[indexY][indexX] = 0;
+				else if (myarr[p.first][p.second] == 0) {
+					myarr[p.first][p.second] = myarr[indexY][indexX];
+					myarr[indexY][indexX] = 0;
 				}
 			}
 		}
 	}
-	if (isdie()) {
-		//游戏结束
-		getkey = false;
-		cout << "游戏失败" << endl;
-		return;
-	}
 	initflag();
-	showpage();
-	insertdata();
 }
 
 
@@ -202,4 +231,109 @@ bool isdie() {
 		}
 	}
 	return die;
+}
+
+
+
+//尝试添加自动玩
+//每间隔一秒执行一遍自身
+int pc_play() {
+	while (true) {
+		int score = 0;
+		int bigstair = 0;
+		int btn_s[4] = { 119,115,97,100 };
+		for (size_t i = 0; i < 4; i++)
+		{
+			//每次循环重新复制棋盘到temp
+			re_copy();
+			//依次模拟移动
+			keyfunc(btn_s[i], temp);
+			//计算当前模拟得分
+			int tempscore = getscore(temp);
+			//重新设置score
+			if (tempscore > score) {
+				score = tempscore;
+				bigstair = btn_s[i];
+			}
+		}
+
+		//执行移动
+		keyfunc(bigstair, arr);
+		//展示棋盘并添加新的数字
+		showpage();
+		insertdata();
+		if (isdie()) {
+			//游戏结束
+			return -1;
+		}
+
+		//等待一秒
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+}
+
+
+void re_copy() {
+	temp = new int* [4];
+	for (size_t i = 0; i < 4; i++)
+	{
+		temp[i] = new int[4];
+		for (size_t j = 0; j < 4; j++)
+		{
+			temp[i][j] = arr[i][j];
+		}
+	}
+}
+
+int getscore(int** temp) {
+	//这两者需要同时兼顾，设置因子给他们分配权重
+	//在棋盘空位较多时，注重合并，棋盘空位较少时，注重增加空位
+	//空位数量，代表棋盘灵活性
+	int zerodata = 0;
+	//可合并数量，代表得分潜力
+	int adddata = 0;
+	//水平和垂直检查
+	for (size_t i = 0; i < 4; i++)
+	{
+		int flag1 = -1;
+		int flag2 = -1;
+		for (size_t j = 0; j < 4; j++)
+		{
+			//水平检查
+			if (temp[i][j] == 0) {
+				zerodata = zerodata + 10;
+			}
+			else if (temp[i][j] == flag1) {
+				flag1 = -1;
+				adddata = adddata + 10;
+			}
+			else {
+				flag1 = temp[i][j];
+			}
+			//垂直检查
+			if (temp[j][i] == 0) {
+				zerodata = zerodata + 10;
+			}
+			else if (temp[j][i] == flag2) {
+				flag2 = -1;
+				adddata = adddata + 10;
+			}
+			else {
+				flag2 = temp[j][i];
+			}
+		}
+	}
+
+	//根据得分设置计算因子
+	int zerofactor = 1;
+	int addfactor = 2;
+
+	//当空位小于等于5时，注重增加空位
+	if (zerodata < 60) {
+		zerofactor = 2;
+		addfactor = 1;
+	}
+
+	int finalscore = zerodata * zerofactor + adddata * addfactor;
+	return finalscore;
 }
