@@ -45,20 +45,21 @@ string setelement(int &elem) {
 		return "     ";
 	}
 	if (elem >0 && elem < 10) {
-		return "  " + setcolor(elem) + to_string(elem) + setcolor(-1) + "  ";
+		return setcolor(elem) + "  " + to_string(elem) + "  " + setcolor(-1);
 	}
 	else if (elem > 9 && elem < 100) {
-		return "  " + setcolor(elem) + to_string(elem) + setcolor(-1) + " ";
+		return setcolor(elem) + "  " + to_string(elem) + " " + setcolor(-1);
 	}
 	else if(elem > 99 && elem < 1000){
-		return " " + setcolor(elem) + to_string(elem) + setcolor(-1) + " ";
+		return setcolor(elem) + " " + to_string(elem) + " " + setcolor(-1);
 	}
 	else {
-		return "" + setcolor(elem) + to_string(elem) + setcolor(-1) + " ";
+		return setcolor(elem) + "" + to_string(elem) + " " + setcolor(-1);
 	}
 }
 
 string setcolor(int elem) {
+	/*
 	if (elem == -1) {return "\033[0m";}
 	else if (elem == 2) { return "\033[1m\033[33m"; }
 	else if (elem == 4) { return "\033[2m\033[33m"; }
@@ -71,6 +72,19 @@ string setcolor(int elem) {
 	else if (elem == 512) {  return "\033[1m\033[32m";  }
 	else if (elem == 1024) {  return "\033[2m\033[32m";  }
 	else if (elem == 2048) {  return "\033[1m\033[31m";  }
+	*/
+	if (elem == -1) { return "\033[0m"; } // ÖØÖÃÑÕÉ«
+	else if (elem == 2) { return "\033[1;30;47m"; } // ºÚ×Ö°×µ×
+	else if (elem == 4) { return "\033[1;37;46m"; }  // °××ÖÇàµ×
+	else if (elem == 8) { return "\033[1;37;42m"; } // °××ÖÂÌµ×
+	else if (elem == 16) { return "\033[1;37;46m"; } // °××ÖÇàµ×
+	else if (elem == 32) { return "\033[1;37;44m"; } // °××ÖÀ¶µ×
+	else if (elem == 64) { return "\033[1;37;45m"; } // °××Ö×Ïµ×
+	else if (elem == 128) { return "\033[1;30;43m"; } // ºÚ×Ö»Æµ×
+	else if (elem == 256) { return "\033[1;30;42m"; } // ºÚ×ÖÂÌµ×
+	else if (elem == 512) { return "\033[1;37;41m"; } // °××Öºìµ×
+	else if (elem == 1024) { return "\033[1;37;43m"; } // °××Ö»Æµ×
+	else if (elem == 2048) { return "\033[1;37;41m"; } // °××Öºìµ×£¨Ç¿µ÷×îÖÕÄ¿±ê£©
 }
 
 //³õÊ¼»¯Êý×é
@@ -95,6 +109,8 @@ void getkeyboard() {
 			if (ch == 97 || ch == 100 || ch == 115 || ch == 119) {
 				keyfunc(ch,arr);
 				showpage();
+				//µÈ´ý300ºÁÃë£¬Ìí¼ÓÊý×Ö
+				std::this_thread::sleep_for(std::chrono::milliseconds(300));
 				insertdata();
 				if (isdie()) {
 					//ÓÎÏ·½áÊø
@@ -261,6 +277,8 @@ int pc_play() {
 		keyfunc(bigstair, arr);
 		//Õ¹Ê¾ÆåÅÌ²¢Ìí¼ÓÐÂµÄÊý×Ö
 		showpage();
+		//µÈ´ý300ºÁÃë
+		std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		insertdata();
 		if (isdie()) {
 			//ÓÎÏ·½áÊø
